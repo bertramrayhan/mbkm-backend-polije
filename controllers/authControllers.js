@@ -1,11 +1,12 @@
 const db = require('../config/database');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const {checkFields} = require('../helper');
 
 async function register(req, res){
     try {
         const {name, email, password, role} = req.body;
-        if(name === '' || email === '' || password === '' || role === ''){
+        if(!checkFields([name, email, password, role])){
             return res.status(400).json({error: 'Semua field wajib diisi'});
         }
 
@@ -21,8 +22,6 @@ async function register(req, res){
             });
         }
     } catch (error) {
-        console.error('Error registering user:', error);
-
         if(error.code === 'ER_DUP_ENTRY'){
             return res.status(409).json({
                 error: 'Email sudah terdaftar'
@@ -35,7 +34,7 @@ async function register(req, res){
 
 async function login(req, res){
     const {email, password} = req.body;
-    if(email === '' || password === ''){
+    if(!checkFields([email, password])){
         return res.status(400).json({error: 'Semua field wajib diisi'});
     }
 
