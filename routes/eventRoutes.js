@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
+const { authenticateToken, authorizeRole } = require('../authMiddleware');
 
 const eventController = require('../controllers/eventControllers');
 
-router.post('/', eventController.createEvent); //organizer/admin membuat event
+router.post('/', authenticateToken, authorizeRole(['admin', 'organizer']), eventController.createEvent); //organizer/admin membuat event
 
 router.get('/', eventController.getAllEvents); //public mengambil semua event
 
