@@ -12,8 +12,6 @@ router.get('/:id', eventController.getEventById); //public mencari suatu event
 
 router.put('/:id', authenticateToken, authorizeRole(['admin', 'organizer']), eventController.updateEvent); //owner organizer/admin mengubah suatu event
 
-router.delete('/:id', eventController.deleteEvent); //owner organizer/admin menghapus suatu event
-
-router.get('/test/db', eventController.testDB); //pengetesan database
+router.delete('/:id', authenticateToken, authorizeRole(['admin', 'organizer']), eventController.deleteEvent); //owner organizer/admin menghapus suatu event
 
 module.exports = router;
