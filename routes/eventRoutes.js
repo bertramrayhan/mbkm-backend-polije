@@ -10,7 +10,7 @@ router.get('/', eventController.getAllEvents); //public mengambil semua event
 
 router.get('/:id', eventController.getEventById); //public mencari suatu event
 
-router.put('/:id', eventController.updateEvent); //owner organizer/admin mengubah suatu event
+router.put('/:id', authenticateToken, authorizeRole(['admin', 'organizer']), eventController.updateEvent); //owner organizer/admin mengubah suatu event
 
 router.delete('/:id', eventController.deleteEvent); //owner organizer/admin menghapus suatu event
 

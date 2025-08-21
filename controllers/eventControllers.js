@@ -1,40 +1,95 @@
 const db = require('../config/database');
+const {checkFields} = require('../helper');
 
 async function createEvent(req, res){
     try {
-        const {id} = req.body;
-        res.status(201).json({ 
-            message: "Event berhasil dibuat",
-            data: {
-                id
-            }
-        });
+        const {title, description, venue, start_datetime, end_datetime} = req.body;
+        if(!checkFields([title, description, venue, start_datetime, end_datetime])){
+            return res.status(400).json({error: 'Semua field wajib diisi'});
+        }
+
+        const organizer_id = req.user.id;
+        const query = 'INSERT INTO events (title, description, venue, start_datetime, end_datetime, organizer_id) VALUES (?,?,?,?,?,?)';
+        const [result] = await db.query(query, [title, description, venue, start_datetime, end_datetime, organizer_id]);
+
+        if(result.affectedRows > 0){
+            res.status(201).json({
+                success: true,
+                message: 'Event berhasil dibuat'
+            });
+        }else {
+            res.status(400).json({
+                success: false,
+                message: 'Gagal membuat event'
+            });
+        }
+
     } catch (error) {
-        console.error('Error creating event:', error);
-        res.status(500).json({ error: "Terjadi kesalahan server" });
+        res.status(500).json({
+            success: false,
+            error: error}
+        );
     }
 };
 
 async function getAllEvents(req, res){
-    res.status(200).json({ message: "Endpoint untuk mengambil semua event"});
+    try {
+        const query = "SELECT * FROM events ORDER BY id DESC";
+        const [events] = await db.query(query);
+
+        res.status(200).json({
+            success: true,
+            message: 'Semua event berhasil diberikan',
+            data: events
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error}
+        );
+    }
 };
 
 async function getEventById(req, res){
-    const id = req.params.id;
-    res.status(200).json({ message: `Endpoint untuk mengambil event dengan ID: ${id}`});
+    try {
+        const id = req.params.id;
+        const query = 'SELECT * FROM events WHERE id=?';
+        const [event] = await db.query(query, [id]);
+
+        if(event.length > 0){
+            res.status(200).json({
+                success: true,
+                message: 'Event ditemukan',
+                data: event[0]
+            });
+        }else {
+            res.status(404).json({
+                success: false,
+                message: 'Event tidak ditemukan'
+            });
+        }
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error}
+        );
+    }
 };
 
 async function updateEvent(req, res){
     try {
         const id = req.params.id;
-        const {text} = req.body; 
-        res.status(200).json({ 
-            message: `Endpoint untuk memperbarui event dengan ID: ${id}`,
-            text: text
-        });
+        const {title, description, venue, start_datetime, end_datetime} = req.body;
+        if(!checkFields([title, description, venue, start_datetime, end_datetime])){
+            return res.status(400).json({error: 'Semua field wajib diisi'});
+        }
+
     } catch (error) {
-        console.error('Error updating event:', error);
-        res.status(500).json({ error: "Terjadi kesalahan server" });
+        res.status(500).json({
+            success: false,
+            error: error}
+        );
     }
 };
 
@@ -47,8 +102,10 @@ async function deleteEvent(req, res){
             text: text
         });
     } catch (error) {
-        console.error('Error deleting event:', error);
-        res.status(500).json({ error: "Terjadi kesalahan server" });
+        res.status(500).json({
+            success: false,
+            error: error}
+        );
     }
 };
 
