@@ -1,7 +1,7 @@
 const db = require('../config/database');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const {checkFields} = require('../helper');
+const {checkFields, trimFields} = require('../helper');
 
 async function register(req, res){
     try {
@@ -33,64 +33,79 @@ async function register(req, res){
 };
 
 async function login(req, res){
-    const {email, password} = req.body;
-    if(!checkFields([email, password])){
-        return res.status(400).json({error: 'Semua field wajib diisi'});
-    }
-
-    const query = "SELECT * FROM users WHERE email=?";
-    const [user] = await db.query(query, [email]);
-
-    if(user.length === 0){
-        return res.status(404).json({error: 'User tidak ditemukan'});
-    }
-
-    const passwordFromDatabase = user[0].password;
-    const resultComparison = await bcrypt.compare(password, passwordFromDatabase);
-    if(resultComparison){
-        const payload = {
-            id: user[0].id,
-            role: user[0].role
+    try {
+        trimFields(req.body);
+        const {email, password} = req.body;
+        if(!checkFields([email, password])){
+            return res.status(400).json({
+                success: false,
+                message: 'Semua field wajib diisi'
+            });
         }
 
-        const options = {expiresIn: '24h'};
+        const query = "SELECT * FROM users WHERE email=?";
+        const [user] = await db.query(query, [email]);
 
-        const token = jwt.sign(payload, process.env.JWT_SECRET, options);
+        if(user.length === 0){
+            return res.status(404).json({
+                success: false,
+                message: 'User tidak ditemukan'});
+        }
 
-        res.status(200).json({
-            message: 'Login berhasil',
-            token: token
-        })
-    }else {
-        return res.status(401).json({error: 'Password salah'});
+        const passwordFromDatabase = user[0].password;
+        const resultComparison = await bcrypt.compare(password, passwordFromDatabase);
+        if(resultComparison){
+            const payload = {
+                id: user[0].id,
+                role: user[0].role
+            }
+
+            const options = {expiresIn: '24h'};
+
+            const token = jwt.sign(payload, process.env.JWT_SECRET, options);
+
+            res.status(200).json({
+                success: true,
+                message: 'Login berhasil',
+                token: token
+            })
+        }else {
+            return res.status(401).json({
+                success: false,
+                message: 'Password salah'
+            });
+        }
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error}
+        );
     }
 };
 
 async function logout(req, res){
-    try {
-        const id = req.params.id;
-        const {text} = req.body; 
-        res.status(200).json({ 
-            message: `Endpoint untuk memperbarui event dengan ID: ${id}`,
-            text: text
-        });
-    } catch (error) {
-        console.error('Error updating event:', error);
-        res.status(500).json({ error: "Terjadi kesalahan server" });
-    }
+    res.status(200).json({
+        success: true,
+        message: 'Logout berhasil'
+    })
 };
 
 async function getProfile(req, res){
     try {
-        const id = req.params.id;
-        const {text} = req.body; 
-        res.status(200).json({ 
-            message: `Endpoint untuk menghapus event dengan ID: ${id}`,
-            text: text
+        const userId = req.user.id;
+        const query = 'SELECT name, email, role FROM users WHERE id=?';
+        const [user] = await db.query(query, [userId]);
+
+        res.status(200).json({
+            success: true,
+            message: 'User berhasil ditemukan',
+            data: user[0]
         });
     } catch (error) {
-        console.error('Error deleting event:', error);
-        res.status(500).json({ error: "Terjadi kesalahan server" });
+        res.status(500).json({
+            success: false,
+            error: error}
+        );
     }
 };
 

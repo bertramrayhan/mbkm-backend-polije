@@ -6,7 +6,10 @@ async function createEvent(req, res){
         trimFields(req.body);
         const {title, description, venue, start_datetime, end_datetime} = req.body;
         if(!checkFields([title, description, venue, start_datetime, end_datetime])){
-            return res.status(400).json({error: 'Semua field wajib diisi'});
+            return res.status(400).json({
+                success: false,
+                message: 'Semua field wajib diisi'
+            });
         }
 
         const resultCompareDate = compareDate(start_datetime, end_datetime);
@@ -104,7 +107,10 @@ async function updateEvent(req, res){
             trimFields(req.body);
             const {title, description, venue, start_datetime, end_datetime} = req.body;
             if(!checkFields([title, description, venue, start_datetime, end_datetime])){
-                return res.status(400).json({error: 'Semua field wajib diisi'});
+                return res.status(400).json({
+                    success: false,
+                    message: 'Semua field wajib diisi'
+                });
             }
 
             const resultCompareDate = compareDate(start_datetime, end_datetime);

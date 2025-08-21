@@ -4,7 +4,8 @@ function authenticateToken(req, res, next){
     const authHeader = req.headers.authorization;
     if(!authHeader || !authHeader.startsWith('Bearer ')){
         return res.status(401).json({
-            error:'Token tidak ada'
+            success: false,
+            message:'Token tidak ada'
         })
     }
 
@@ -15,7 +16,8 @@ function authenticateToken(req, res, next){
         next();
     } catch (error) {
         res.status(403).json({
-            error:'Token tidak valid'
+            success: false,
+            message:'Token tidak valid'
         })
     }
 }
@@ -27,7 +29,8 @@ function authorizeRole(allowedRoles){
             next();
         }else {
             res.status(403).json({
-                error:'Akses ditolak: tidak mempunyai role yang diperlukan'
+                success: false,
+                message:'Akses ditolak: tidak mempunyai role yang diperlukan'
             });
         }
     }

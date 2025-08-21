@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const { authenticateToken} = require('../authMiddleware');
 
 const authController = require('../controllers/authControllers');
 
@@ -9,6 +10,6 @@ router.post('/login', authController.login); //JWT
 
 router.post('/logout', authController.logout);
 
-router.get('/me', authController.getProfile); //profil
+router.get('/me', authenticateToken, authController.getProfile); //profil
 
 module.exports = router;
